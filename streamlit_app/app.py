@@ -37,7 +37,6 @@ intake_options = [
     "Walk Ins"
 ]
 
-# Function to preprocess new data
 def process_new_data(type_of_dispute, type_of_intake, date_registered, feature_columns):
     """
     Converts user inputs into a feature array matching the model's training data.
@@ -47,10 +46,9 @@ def process_new_data(type_of_dispute, type_of_intake, date_registered, feature_c
     day_registered = date_registered.day
     quarter_registered = (month_registered - 1) // 3 + 1
 
-    # Initialize feature dictionary
+
     feature_values = {col: 0 for col in feature_columns}
 
-    # One-hot encode categorical variables
     dispute_col_name = f"type_of_dispute_{type_of_dispute}"
     if dispute_col_name in feature_values:
         feature_values[dispute_col_name] = 1
@@ -59,13 +57,11 @@ def process_new_data(type_of_dispute, type_of_intake, date_registered, feature_c
     if intake_col_name in feature_values:
         feature_values[intake_col_name] = 1
 
-    # Assign date features
     feature_values["year_registered"] = year_registered
     feature_values["month_registered"] = month_registered
     feature_values["day_registered"] = day_registered
     feature_values["quarter_registered"] = quarter_registered
 
-    # Convert to NumPy array in correct order
     input_array = np.array([feature_values[col] for col in feature_columns]).reshape(1, -1)
     return input_array
 
@@ -83,29 +79,28 @@ if st.button("Predict Mediation Outcome"):
     # Process new data
     new_input = process_new_data(type_of_dispute, type_of_intake, date_registered, feature_columns)
 
-    # Step 1: Predict Mediation Probability
+
     med_prob = model_med.predict_proba(new_input)[:, 1][0]
 
-    # Step 2: Predict Settlement Probability (if mediated)
+    #threshold for prediction of mediation 
     if med_prob > 0.5:
         settle_prob = settle_model.predict_proba(new_input)[:, 1][0]
     else:
         settle_prob = 0
 
-    # Step 3: Stack probabilities for meta-classifier
+
     stacked_features = np.array([[med_prob, settle_prob]])
 
-    # Step 4: Predict Final Outcome
+
     predicted_class = balance_classifier.predict(stacked_features)[0]
 
-    # Map prediction to label
     prediction_map = {
         0: "Not Mediated",
         1: "Mediation Without Settlement",
         2: "Mediation With Settlement"
     }
 
-    # Display Prediction
+
     st.subheader("Prediction Result:")
     st.write(f"📌 The case is predicted to be: **{prediction_map[predicted_class]}**")
 
