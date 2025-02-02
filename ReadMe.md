@@ -1,8 +1,3 @@
-# 📌 Project Name
-
-Rachel Tan's Submission 
-
----
 
 ## 🚀 Installation Guide
 
